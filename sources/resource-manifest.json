@@ -1,0 +1,59 @@
+{
+  "project": "n_vlink",
+  "decisions": {
+    "reference_game": "N v1.4",
+    "target": "Windows x86_64",
+    "engine": "Godot 4 Standard / GDScript",
+    "fidelity": "High fidelity movement and rules",
+    "replay": "Reserve input-frame and simulation-version interfaces; no replay feature yet",
+    "download_policy": "User downloads dependencies into sources. Keep all acquired project resources inside the workspace.",
+    "physics_rate": 120,
+    "rendering": "Independent render interpolation; unlimited or custom FPS cap; optional VSync",
+    "feel_setting": "Ground and air acceleration multiplier 0.25-4.00, default 1.00"
+  },
+  "resources": [
+    {
+      "file": "Godot_v4.7.2-stable_win64.exe.zip",
+      "required": true,
+      "purpose": "Portable Windows editor and command-line test runner",
+      "url": "https://downloads.godotengine.org/?version=4.7.2&flavor=stable&slug=win64.exe.zip&platform=windows.64",
+      "release_page": "https://godotengine.org/download/archive/4.7.2-stable/",
+      "status": "Provided by user, archive verified and extracted to sources/godot; CLI version verified"
+    },
+    {
+      "file": "Godot_v4.7.2-stable_export_templates.tpz",
+      "required": true,
+      "purpose": "Export a Windows executable using templates matching the editor version",
+      "url": "https://downloads.godotengine.org/?version=4.7.2&flavor=stable&slug=export_templates.tpz&platform=templates",
+      "status": "Provided by user; matching Windows x86_64 templates extracted into sources/export_templates"
+    },
+    {
+      "file": "N_tutorialAsrc.zip",
+      "required": false,
+      "purpose": "Official collision detection tutorial source reference",
+      "url": "https://www.metanetsoftware.com/technique/diagrams/N_tutorialAsrc.zip",
+      "documentation": "https://www.metanetsoftware.com/technique/tutorialA.html",
+      "status": "Official page link verified; web tool received HTTP 403"
+    },
+    {
+      "file": "N_tutorialBsrc.zip",
+      "required": false,
+      "purpose": "Official grid collision and raycasting tutorial source reference",
+      "url": "https://www.metanetsoftware.com/technique/diagrams/N_tutorialBsrc.zip",
+      "documentation": "https://www.metanetsoftware.com/technique/tutorialB.html",
+      "status": "Official page link verified; web tool received HTTP 403"
+    }
+  ],
+  "existing_resources": ["../n_v1pc.zip", "../Nv2-PC.zip"],
+  "open_items": [
+    "Reference-play calibration remains: enemy AI, moving object contacts, slopes, movement trajectories.",
+    "Original tutorials unavailable (HTTP 403); current build does not depend on them."
+  ],
+  "completed_items": [
+    "Version 0.3: read original SWF animation joint markers (104 frames) and patrol/scout drone geometry; extraction tool and audit remain in workspace.",
+    "Version 0.3: audited original run/air animation selection, corridor pursuit and intact/explosive ragdoll transitions.",
+    "Recovered complete 500-map built-in campaign from local N 1.4 executable using a data-only AVM1 reader.",
+    "Preserved original ordering in 100 episodes of five maps; each map has a source-string SHA256.",
+    "Local reference distributions are freeware binary archives, not verified full open-source projects."
+  ]
+}

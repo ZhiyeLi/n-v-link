@@ -1,0 +1,42 @@
+{
+  "exusiai/char_103_angel.atlas": {
+    "url": "https://static.prts.wiki/spine/char/char_103_angel/char_103_angel/char_103_angel.atlas",
+    "sha256": "00c875197f07d3496dd3725d28592bc1dc6e16412fa6082daf633570a7584f1a",
+    "bytes": 3721
+  },
+  "exusiai/char_103_angel.png": {
+    "url": "https://static.prts.wiki/spine/char/char_103_angel/char_103_angel/char_103_angel.png",
+    "sha256": "27e243254aebeaa4b65cadf63408701dbb61e64bd92dc86db2240306b3becd0c",
+    "bytes": 37125
+  },
+  "slug/enemy_1007_slime.atlas": {
+    "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_1007_slime/enemy_1007_slime.atlas",
+    "sha256": "ba435931800962a167f09cb65d7e04a13f698c6c9f4966ea080698a0c37c9983",
+    "bytes": 552
+  },
+  "slug/enemy_1007_slime.png": {
+    "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_1007_slime/enemy_1007_slime.png",
+    "sha256": "a2e0b32b6d239ce3f9a61642cd0797d17c90a70fc3f006c07739656b8638bb2a",
+    "bytes": 12510
+  },
+  "exusiai/char_103_angel.skel": {
+    "url": "https://static.prts.wiki/spine/char/char_103_angel/char_103_angel/char_103_angel.skel",
+    "sha256": "9da14924a44daa5945e27e9e5adf56b91fa79a46f4a9b232a8dc947d1a7b5afe",
+    "bytes": 54966
+  },
+  "slug/enemy_1007_slime.skel": {
+    "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_1007_slime/enemy_1007_slime.skel",
+    "sha256": "c32483e6bd3bdb0ed36eccadf4e6d99f8d78dac424d797bc4202a88e67dcee92",
+    "bytes": 16567
+  },
+  "reference/SkeletonBinary35.java": {
+    "url": "https://raw.githubusercontent.com/EsotericSoftware/spine-runtimes/3.5/spine-libgdx/spine-libgdx/src/com/esotericsoftware/spine/SkeletonBinary.java",
+    "sha256": "d6e58d8e2a8fe1dcc02bfd25f349bfc0c50b022b8cbb79cca866029a0de32266",
+    "bytes": 34034
+  },
+  "reference/SkeletonBinary38.java": {
+    "url": "https://raw.githubusercontent.com/EsotericSoftware/spine-runtimes/3.8/spine-libgdx/spine-libgdx/src/com/esotericsoftware/spine/SkeletonBinary.java",
+    "sha256": "2782f4b0657b83cb1009d0f34b6fda435c4c22e2095cda32e6531266a6579772",
+    "bytes": 36625
+  }
+}

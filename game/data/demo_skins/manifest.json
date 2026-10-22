@@ -1,0 +1,173 @@
+{
+	"layout": {
+		"motion": 0.65,
+		"parts": {
+			"body": {
+				"angle": 0.0,
+				"layer": 5,
+				"offset_x": 0.0,
+				"offset_y": 0.0,
+				"pivot_x": 0.392303168773651,
+				"pivot_y": 0.476194709539413,
+				"reference_angle": -1.66200256347656,
+				"tip_x": 0.800968945026398,
+				"tip_y": 0.379425823688507,
+				"width": 12.0650837551615
+			},
+			"head": {
+				"angle": 0.0,
+				"layer": 8,
+				"offset_x": 1.31465935707092,
+				"offset_y": 1.01376473903656,
+				"pivot_x": 0.581745028495789,
+				"pivot_y": 0.969241082668304,
+				"reference_angle": 0.0,
+				"tip_x": 0.689974546432495,
+				"tip_y": 0.969241082668304,
+				"width": 15.7073603323232
+			},
+			"left_calf": {
+				"angle": 0.0,
+				"layer": 2,
+				"offset_x": -0.00000157037118242442,
+				"offset_y": -0.00000551742687093792,
+				"pivot_x": 0.176013991236687,
+				"pivot_y": 0.487104535102844,
+				"reference_angle": 1.22328972816467,
+				"tip_x": 0.896476626396179,
+				"tip_y": 0.487104684114456,
+				"width": 8.43013427817303
+			},
+			"left_foot": {
+				"angle": 0.0,
+				"layer": 2,
+				"offset_x": 0.000000630135787105246,
+				"offset_y": 0.00000540119208380929,
+				"pivot_x": 0.424161344766617,
+				"pivot_y": 0.503531277179718,
+				"reference_angle": 1.05165076255798,
+				"tip_x": 0.864082992076874,
+				"tip_y": 0.503531277179718,
+				"width": 6.59243140842604
+			},
+			"left_forearm": {
+				"angle": 0.0,
+				"layer": 2,
+				"offset_x": -0.00000116062903998682,
+				"offset_y": -0.00000060118725286884,
+				"pivot_x": 0.101109318435192,
+				"pivot_y": 0.477882266044617,
+				"reference_angle": 0.739974021911621,
+				"tip_x": 0.490133434534073,
+				"tip_y": 0.477881997823715,
+				"width": 8.09794818645975
+			},
+			"left_thigh": {
+				"angle": 0.0,
+				"layer": 2,
+				"offset_x": -0.777303218841553,
+				"offset_y": 1.36516678333282,
+				"pivot_x": 0.21692556142807,
+				"pivot_y": 0.512222349643707,
+				"reference_angle": 1.10266470909119,
+				"tip_x": 0.882910013198853,
+				"tip_y": 0.512222528457642,
+				"width": 6.73339647110649
+			},
+			"left_upper_arm": {
+				"angle": 0.0,
+				"layer": 2,
+				"offset_x": -0.282377421855927,
+				"offset_y": 1.42157852649689,
+				"pivot_x": 0.206097587943077,
+				"pivot_y": 0.541894614696503,
+				"reference_angle": 0.968510270118713,
+				"tip_x": 0.736080765724182,
+				"tip_y": 0.541894733905792,
+				"width": 5.55859401595074
+			},
+			"right_calf": {
+				"angle": 0.0,
+				"layer": 6,
+				"offset_x": -0.000000586474357078259,
+				"offset_y": 0.000000276763756801302,
+				"pivot_x": 0.172123223543167,
+				"pivot_y": 0.505345582962036,
+				"reference_angle": 2.04686617851257,
+				"tip_x": 0.906895816326141,
+				"tip_y": 0.505345582962036,
+				"width": 8.32679515407396
+			},
+			"right_foot": {
+				"angle": 0.0,
+				"layer": 6,
+				"offset_x": -0.000000288193717778995,
+				"offset_y": 0.000000148600065585924,
+				"pivot_x": 0.474098980426788,
+				"pivot_y": 0.480962008237839,
+				"reference_angle": 1.30146563053131,
+				"tip_x": 0.907892525196075,
+				"tip_y": 0.480961918830872,
+				"width": 6.63474044534435
+			},
+			"right_forearm": {
+				"angle": 0.0,
+				"layer": 6,
+				"offset_x": -0.00000169118857229478,
+				"offset_y": -0.00000237824019677646,
+				"pivot_x": 0.128815695643425,
+				"pivot_y": 0.465342551469803,
+				"reference_angle": 2.2913510799408,
+				"tip_x": 0.476775586605072,
+				"tip_y": 0.465342551469803,
+				"width": 7.93040681921918
+			},
+			"right_thigh": {
+				"angle": 0.0,
+				"layer": 6,
+				"offset_x": -0.535678386688232,
+				"offset_y": -1.27674007415771,
+				"pivot_x": 0.175663471221924,
+				"pivot_y": 0.485310107469559,
+				"reference_angle": 2.01172137260437,
+				"tip_x": 0.827987194061279,
+				"tip_y": 0.485310345888138,
+				"width": 6.78360946597224
+			},
+			"right_upper_arm": {
+				"angle": 0.0,
+				"layer": 6,
+				"offset_x": 0.282377421855927,
+				"offset_y": -1.42157852649689,
+				"pivot_x": 0.233037531375885,
+				"pivot_y": 0.504127562046051,
+				"reference_angle": 2.18893933296204,
+				"tip_x": 0.768409848213196,
+				"tip_y": 0.504127562046051,
+				"width": 5.21624486807118
+			}
+		},
+		"reference": "PRTS Exusiai setup skeleton / native image anchors",
+		"scale": 1.0,
+		"version": 1
+	},
+	"slots": {
+		"drone_patrol": "drone_patrol.png",
+		"player_body": "player_body.png",
+		"player_head": "player_head.png",
+		"player_left_calf": "player_left_calf.png",
+		"player_left_foot": "player_left_foot.png",
+		"player_left_forearm": "player_left_forearm.png",
+		"player_left_thigh": "player_left_thigh.png",
+		"player_left_upper_arm": "player_left_upper_arm.png",
+		"player_right_calf": "player_right_calf.png",
+		"player_right_foot": "player_right_foot.png",
+		"player_right_forearm": "player_right_forearm.png",
+		"player_right_thigh": "player_right_thigh.png",
+		"player_right_upper_arm": "player_right_upper_arm.png"
+	},
+	"sources": [
+		"https://prts.wiki/w/能天使/spine",
+		"https://prts.wiki/w/源石虫/spine"
+	]
+}

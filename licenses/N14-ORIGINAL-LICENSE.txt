@@ -1,0 +1,46 @@
+N v1.4
+Copyright (c) 2005 by Metanet Software Inc.
+Raigan Burns / Mare Sheppard
+metanet at harveycartel dot org
+
+
+BY COPYING, USING OR DISTRIBUTING "N", YOU INDICATE
+YOUR AGREEMENT TO THIS LICENSE
+
+===============================================================
+LICENSE:
+
+Raigan Burns and Mare Sheppard / Metanet Software Inc. own and reserve the exclusive 
+right to distribute "N" except as noted below. 
+Its content is the property of Raigan Burns and Mare Sheppard / Metanet Software Inc. 
+to the extent permitted by law.
+
+Raigan Burns and Mare Sheppard / Metanet Software Inc. grant a non-exclusive, non-transferable,
+royalty-free license to distribute "N" only as follows:
+
+Individuals are encouraged to share and give copies of
+"N" to friends, family, coworkers, and members of any
+not-for-profit organization, but only without charge and
+without ADVERTISING ACCOMPANYING ITS DISTRIBUTION.  That is:
+you may NOT distribute N for money. This includes money
+made from any location or source where there exists
+advertising, or other product endorsements of any kind without
+prior consent of the authors, Raigan Burns and Mare Sheppard / Metanet Software Inc..
+
+These grants are subject to the conditions that no copyright
+information or trademark will be added or removed, and all of
+"N"'s files as released by Raigan Burns and Mare Sheppard / Metanet Software Inc.
+will be included without modification.
+
+===============================================================
+LIMITED WARRANTY AND LIMITATION OF REMEDIES:
+
+"N" is provided "AS-IS", and no warranty of any kind
+are made as to it or any medium it may be on.
+
+Except as explicitly permitted herein, you will not modify
+"N". Except to the extent, if any, applicable law may
+require otherwise, you will not decompile, disassemble, or
+reverse engineer "N", or use or disclose any
+confidential information that it contains.
+

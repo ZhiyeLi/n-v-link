@@ -1,0 +1,26 @@
+N VLink 0.5 - two user-requested texture test cases
+
+Characters/artwork: Exusiai (能天使) and Originium Slug (源石虫), Arknights.
+Original artwork copyright Hypergryph and associated rightsholders.
+Source: PRTS Wiki. Credit does not transfer ownership or grant an open-source license to the artwork.
+
+Reference pages:
+https://prts.wiki/w/%E8%83%BD%E5%A4%A9%E4%BD%BF
+https://prts.wiki/w/%E8%83%BD%E5%A4%A9%E4%BD%BF/spine
+https://prts.wiki/w/%E6%BA%90%E7%9F%B3%E8%99%AB
+https://prts.wiki/w/%E6%BA%90%E7%9F%B3%E8%99%AB/spine
+
+Original data:
+https://static.prts.wiki/spine/char/char_103_angel/char_103_angel/char_103_angel.atlas
+https://static.prts.wiki/spine/char/char_103_angel/char_103_angel/char_103_angel.png
+https://static.prts.wiki/spine/char/char_103_angel/char_103_angel/char_103_angel.skel
+https://torappu.prts.wiki/assets/enemy_spine/enemy_1007_slime/enemy_1007_slime.atlas
+https://torappu.prts.wiki/assets/enemy_spine/enemy_1007_slime/enemy_1007_slime.png
+https://torappu.prts.wiki/assets/enemy_spine/enemy_1007_slime/enemy_1007_slime.skel
+
+Workspace sources/prts/downloads.json records exact source URLs, byte sizes and SHA-256 hashes.
+The offline preparation scripts reconstruct only setup-pose geometry and render ordinary PNG images.
+The game uses twelve Exusiai image parts with measured source bone anchors and one Slug image for patrol drones.
+N's movement poses are retargeted to the image proportions; original full animation tracks are not played.
+No Spine animation runtime or Arknights animation/AI system is included in the executable.
+The format-reference Java files under sources/prts/reference retain their original licenses and are not exported.
