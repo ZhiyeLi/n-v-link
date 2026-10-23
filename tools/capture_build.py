@@ -22,29 +22,41 @@ if "--skin-window-check" in sys.argv: screens = ["skins-ui"]
 if "--poses-v05" in sys.argv: screens = ["poses-v05"]
 if "--v05-checks" in sys.argv: screens = ["rig-camera", "poses-v05"]
 if "--run-v051" in sys.argv: screens = ["run-v051"]
+if "--v052-checks" in sys.argv: screens = ["death-window", "deaths-v052"]
+if "--v053-checks" in sys.argv: screens = ["lasers-v053"]
+if "--v06-checks" in sys.argv: screens = ["animation-v06"]
+if "--prepare-v061" in sys.argv: screens = ["prepare-v061"]
+if "--v061-checks" in sys.argv: screens = ["presets-v061"]
+if "--layers-v061" in sys.argv: screens = ["layers-v061"]
 for argument in sys.argv[1:]:
     if argument.startswith("--screen="):
         screen = argument.split("=", 1)[1]
-        if screen not in ["menu", "play", "settings", "bindings", "skins", "rig", "collisions", "death", "explosive"]:
+        if screen not in ["menu", "play", "settings", "bindings", "skins", "rig", "collisions", "death", "explosive", "presets", "fetch"]:
             raise ValueError("Unknown capture screen")
         screens = [screen]
 executable = json.loads((ROOT / "build/build-info.json").read_text(encoding="utf-8")).get("executable", "NVLink.exe")
 for screen in screens:
     command = [str(ROOT / "build" / executable), "--audio-driver", "Dummy",
                "--log-file", str(ROOT / f"logs/export-{screen}.log"), "--quit-after", "180"]
-    if screen in ("window", "animation", "presentation", "prepare", "skins-ui", "skin-poses", "rig-camera", "poses-v05", "run-v051"):
-        script = {"window": "test_window.gd", "animation": "animation_gallery.gd", "presentation": "presentation_v03.gd", "prepare": "prepare_demo_skins.gd", "skins-ui": "test_skin_window.gd", "skin-poses": "presentation_v04.gd", "rig-camera": "test_rig_camera_window.gd", "poses-v05": "presentation_v05.gd", "run-v051": "presentation_v051.gd"}[screen]
+    if screen in ("animation-v06", "prepare-v061", "presets-v061", "layers-v061"):
+        script = {"animation-v06":"presentation_v06.gd", "prepare-v061":"prepare_v061_assets.gd", "presets-v061":"presentation_v061.gd", "layers-v061":"presentation_v061_layers.gd"}[screen]
+        command = [str(ROOT / "sources/godot/Godot_v4.7.2-stable_win64_console.exe"),
+                   "--path", str(ROOT / "game"), "--audio-driver", "Dummy", "--script", f"res://tests/{script}",
+                   "--log-file", str(ROOT / f"logs/export-{screen}.log")]
+    elif screen in ("window", "animation", "presentation", "prepare", "skins-ui", "skin-poses", "rig-camera", "poses-v05", "run-v051", "death-window", "deaths-v052", "lasers-v053"):
+        script = {"window": "test_window.gd", "animation": "animation_gallery.gd", "presentation": "presentation_v03.gd", "prepare": "prepare_demo_skins.gd", "skins-ui": "test_skin_window.gd", "skin-poses": "presentation_v04.gd", "rig-camera": "test_rig_camera_window.gd", "poses-v05": "presentation_v05.gd", "run-v051": "presentation_v051.gd", "death-window": "test_death_window.gd", "deaths-v052": "presentation_v052.gd", "lasers-v053": "presentation_v053.gd"}[screen]
         command = [str(ROOT / "sources/godot/Godot_v4.7.2-stable_win64_console.exe"),
                    "--path", str(ROOT / "game"), "--audio-driver", "Dummy", "--script", f"res://tests/{script}",
                    "--log-file", str(ROOT / f"logs/export-{screen}.log")]
     elif screen == "smoke":
         command += ["--headless", "--quit-after", "5"]
     else:
+        if screen == "fetch": command[command.index("--quit-after")+1] = "7200"
         command += ["--", f"--capture={ROOT / f'logs/{screen}.png'}", f"--capture-screen={screen}"]
-    result = subprocess.run(command, env=env, cwd=ROOT, startupinfo=startup, timeout=35)
+    result = subprocess.run(command, env=env, cwd=ROOT, startupinfo=startup, timeout=180 if screen in ("presets-v061","fetch") else 60)
     log = (ROOT / f"logs/export-{screen}.log").read_text(encoding="utf-8")
     print(f"{screen}: exit {result.returncode}")
     print(log)
-    expected = "WINDOW_TEST_RESULT:" if screen == "window" else "CAPTURE_RESULT=0"
+    expected = "WINDOW_TEST_RESULT:" if screen in ["window", "death-window"] else "CAPTURE_RESULT=0"
     if result.returncode or "SCRIPT ERROR" in log or (screen != "smoke" and expected not in log):
         raise SystemExit(1)

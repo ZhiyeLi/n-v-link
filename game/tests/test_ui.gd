@@ -101,7 +101,7 @@ func run() -> void:
 	find_text(main.hud, "设置").pressed.emit()
 	find_text(main.overlay, "完成").pressed.emit()
 	check(main.state == "dead" and not main.world.paused, "Settings returns to the running death scene")
-	find_text(main.overlay, "重试  R").pressed.emit()
+	find_text(main.overlay, "重试  " + main.key_hint("confirm")).pressed.emit()
 	check(main.state == "playing" and main.sim.time_left == 90, "Retry restores level-start time")
 	check(not main.sim.ragdoll.active, "Retry clears previous corpse")
 	main.sim.won = true

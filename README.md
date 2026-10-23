@@ -1,10 +1,32 @@
 # N VLink
 
-N 1.4 的 Windows / Godot 4.7.2 重构原型，当前版本 **0.5.1**。当前交付用于试玩与手感校准，还没有达到逐关验收、高度还原完成的状态。
+**仅供学习、交流讨论，禁止商业用途。公开源码采用非商业使用条款，不属于 OSI 标准开源许可。** 见 [LICENSE](LICENSE) 与 [第三方素材声明](NOTICE.md)。第三方内容保留原权利人的许可，不因本声明获得额外授权。
+
+**For non-commercial learning and discussion only. This is a source-available project under non-commercial terms, not an OSI-approved open-source license.** See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md). Third-party rights and licenses remain separate.
+
+[下载 0.6.1 / Download](https://github.com/ZhiyeLi/n-v-link/releases/tag/v0.6.1) · [发布说明 / Release notes](docs/releases/v0.6.1.md)
+
+N 1.4 的 Windows / Godot 4.7.2 重构原型，当前版本 **0.6.1**。当前交付用于试玩与手感校准，还没有达到逐关验收、高度还原完成的状态。
+
+A Windows / Godot 4.7.2 reconstruction of N 1.4, version **0.6.1**. This is a playable prototype; full level-by-level fidelity validation remains ongoing.
+
+**中英双语使用说明 / Chinese–English user guide:** [0.6 / 0.6.1 使用说明](docs/animation-assets-v06.md)。便携包也附有 `README.txt` 和 `USER-GUIDE-ZH-EN.md`。The portable build includes both documents.
+
+0.6.1 在“自定义贴图”内加入 PRTS 原生抓取面板，逐文件反馈成功与失败，不需要 Python。新增完整外观包 `.nvskin` 的复制、保存、读取与导入/导出；内置“默认”“i能tv”“白金·临光”。每套都定义全部槽位、默认资源、骨骼、动画、尺寸与背景，整体加载，不继承上一套。下载原始 Spine 模型不等于自动转换成可播放动作。
+
+Version 0.6.1 adds a native PRTS downloader with per-file success/failure feedback and no Python dependency. Complete `.nvskin` appearance packages can be copied, saved, loaded, imported and exported. Bundled presets are Default, i能tv and 白金·临光. Every package defines all slots, defaults, rig data, animations, sizes and background; loading replaces the whole appearance. Downloading raw Spine models does not automatically convert them into playable clips.
 
 ## 启动
 
-双击 `build/Play.cmd`，启动 `NVLink-0.5.1.exe`。启动器把引擎缓存、日志、设置及自定义贴图保留在 `build/userdata/` 内，不需要安装 Godot。旧版可执行文件保留供对照，启动器已切换到新版；原来的进度与设置继续保留。
+双击 `build/Play.cmd`，启动 `NVLink-0.6.1.exe`。启动器把引擎缓存、日志、设置及自定义贴图保留在 `build/userdata/` 内，不需要安装 Godot。导入 GIF/MP4/WebM 使用包内 `tools/ffmpeg.exe`，请保留此文件。旧版可执行文件保留供对照，启动器已切换到新版；原来的进度与设置继续保留。
+
+Run `build/Play.cmd` to launch `NVLink-0.6.1.exe`. Runtime data stays in `build/userdata/`; progress and settings are preserved. Keep `tools/ffmpeg.exe` for GIF/MP4/WebM imports. No Godot installation is needed. See the bilingual guide above for all controls, settings and appearance workflows.
+
+0.6 新增实体状态动画槽、整套玩家动画、GIF/MP4/WebM 导入、文件夹动作名自动匹配及自定义地图背景。侦察无人机示例为 Texas：移动 GIF，冲刺暂复用移动并加速至 1.65 倍；激光无人机示例为蕾缪安静态 Idle 图，四个动作槽已开放。原始输入固定在 `sources/input pictures/`。PRTS 下载脚本已实测抓取蕾缪安的正面、背面、基建模型资源；原始 Spine 自动转成游戏动画尚未实现。使用方法、格式限制与完整槽位表见 [0.6 动画资源说明](docs/animation-assets-v06.md)。
+
+0.5.3 区分暗红激光无人机与黑色机枪无人机。激光发现玩家后锁定方向并停机，显示 0.75 秒预警线，随后沿固定方向发射持续 2 秒的光束，冷却 1 秒后恢复移动。预警期间可以躲开，发射期间穿越光束仍会死亡；墙壁与关闭的门阻挡射线。时序依据与回归检查见 [激光无人机修正](docs/laser-drone.md)。
+
+0.5.2 撤回上一轮容错调整，完整恢复 0.5.1 的 120 毫秒跳跃缓存、100 毫秒离墙宽限和侧墙判定。蹬墙动作从 250 毫秒缩短到约 83 毫秒后进入普通跳跃动画。R（可重绑）改为自杀，完整布娃娃和爆炸断肢各 50%；死亡后使用确认键（默认 Enter）或“重试”按钮重新开始。敌对单位碰撞产生短促电弧；地雷与导弹爆炸产生大量红色喷溅；摔落死亡产生少量喷溅，液滴会落地并留下短暂痕迹。死亡提示保持在顶部，场景继续模拟。
 
 0.5.1 修正自定义角色跑动时左右肢体的角度映射，不再把不对称的站姿角度差叠加到跑步动作。其他姿态和玩家关节配置保留。蹬墙增加 **120 毫秒按键缓存**和 **100 毫秒离墙宽限**，碰到新墙时不再受上次跳跃延长状态阻挡，快速点按通过独立输入边沿保留。每次按键仅触发一次，按住不自动连续蹬墙。完整循环预览见 [跑动检查](docs/v051-run.png)。
 
@@ -14,7 +36,7 @@ N 1.4 的 Windows / Godot 4.7.2 重构原型，当前版本 **0.5.1**。当前�
 
 0.3 修复了左侧肢体被背景遮住的问题，使用从原版提取的 72 帧跑步轨迹和速度驱动的空中姿态，区分贴墙上升、滑墙与蹬墙。定轨无人机与带天线的侦察无人机恢复不同图形和索敌行为。贴墙阻力增强；普通死亡保持完整布娃娃，地雷/导弹爆炸拆开四肢。死亡提示位于顶部，场景继续运行。原版依据、实现差异和测试见 [本轮技术记录](docs/animation-drones-and-death.md)，图形对照见 [动作与死亡预览](docs/v03-presentation.png)。
 
-- 在“设置 → 按键绑定”中修改向左、向右、跳跃、重试、暂停/返回、下一关/确认、切换全屏的全部游戏快捷键。每项最多三个键，支持清空、冲突提示和恢复默认。
+- 在“设置 → 按键绑定”中修改向左、向右、跳跃、自杀、暂停/返回、下一关/确认、切换全屏的全部游戏快捷键。每项最多三个键，支持清空、冲突提示和恢复默认。
 - 初始绑定提供方向键/A/D、Shift/空格/Z、R、Esc、Enter、F11，玩家可全部更改。封面不再显示键位表；游戏内提示跟随当前绑定。
 - 跳跃按住延长、松开缩短；角色朝向由最后一次方向按键决定，松开、惯性和两个方向同时按下不会自行翻转朝向。
 - 100 组原版关卡全部开放，每组 5 关；每组初始 90 秒，金块增加 2 秒。
@@ -107,7 +129,7 @@ powershell -ExecutionPolicy Bypass -File tools/build.ps1
 
 UI 测试覆盖关卡选择、暂停、修改帧率、修改加速度、改键/松键/冲突/保存、继续、死亡、重试及下一关。控制回归测试验证多个倍率下的地面与空中最大速度、短按位移、朝向和分部位动画。真实 Windows 图形环境验证自定义尺寸、最大化、全屏、全屏快捷键焦点优先级和改键后的全屏行为。帧率测试在 Godot 的 60、144、1000 FPS 帧调度下输入同一组按物理步编号指定的按键，比较完整运动轨迹哈希。
 
-沙箱内启动 Godot 时可能输出无法读取 Windows 根证书存储的消息。这是运行环境的限制；引擎随后加载内置证书，游戏不使用网络功能。
+沙箱内启动 Godot 时可能输出无法读取 Windows 根证书存储的消息。离线检查不依赖网络；0.6.1 的 PRTS 抓取在实际 Windows 图形环境中另行实测 HTTPS 成功与失败反馈。
 
 ## 来源
 

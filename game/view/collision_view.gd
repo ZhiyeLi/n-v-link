@@ -44,7 +44,7 @@ func _draw() -> void:
 			4: circle(p, 6, DANGER)
 			6:
 				circle(p, 9, DANGER)
-				if int(e.p[4]) == 1 and e.flash > 0: draw_line(p, p + e.shot * sim.ray_distance(p, e.shot), DANGER, 0.8)
+				if int(e.p[4]) == 1 and e.state == 3: draw_line(e.pos, sim.laser_beam_end(e), DANGER, 0.8)
 			7:
 				var tangent := Vector2(-e.dir.y, e.dir.x) * 12
 				draw_line(p + e.dir * 12 - tangent, p + e.dir * 12 + tangent, SOLID, 1.2)

@@ -14,10 +14,14 @@ relative_files = [
     Path(INFO["executable"]),
     Path("Play.cmd"),
     Path("README.txt"),
+    Path("LICENSE"),
+    Path("NOTICE.md"),
+    Path("USER-GUIDE-ZH-EN.md"),
     Path("build-info.json"),
+    Path("tools/ffmpeg.exe"),
     *sorted(Path("licenses").joinpath(path.name) for path in (BUILD / "licenses").iterdir() if path.is_file()),
 ]
-archive_path = BUILD / "NVLink-v0.5.1-Windows.zip"
+archive_path = BUILD / "NVLink-v0.6.1-Windows.zip"
 with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
     for relative in relative_files:
         archive.write(BUILD / relative, relative.as_posix())

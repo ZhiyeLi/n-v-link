@@ -1,0 +1,20 @@
+{
+	"slots": {
+		"drone_laser": {
+			"file": "lemuen.png",
+			"kind": "image",
+			"title": "蕾缪安 · Idle（静态）"
+		},
+		"drone_scout@dash": {
+			"file": "clips/210948/clip.json",
+			"kind": "clip",
+			"speed": 1.65,
+			"title": "Texas · Move（加速复用）"
+		},
+		"drone_scout@move": {
+			"file": "clips/210948/clip.json",
+			"kind": "clip",
+			"title": "Texas · Move"
+		}
+	}
+}

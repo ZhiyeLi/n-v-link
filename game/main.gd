@@ -24,6 +24,8 @@ var font := SystemFont.new()
 var capture_path := ""
 var capture_screen := "play"
 var capture_frames := 0
+var capture_ready := true
+var capture_viewport: Viewport
 var window_mode := NinjaWindowMode.new()
 var fullscreen_check: CheckButton
 var settings_tab := "general"
@@ -35,7 +37,7 @@ var skins: NinjaSkins
 var skin_screen: Control
 
 func _ready() -> void:
-	DisplayServer.window_set_title("N VLink · 0.5.1")
+	DisplayServer.window_set_title("N VLink · 0.6.1")
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--capture="):
 			capture_path = argument.trim_prefix("--capture=")
@@ -48,6 +50,7 @@ func _ready() -> void:
 		var skin_base := settings.path.get_base_dir()
 		if settings.path.get_file() != "settings.json": skin_base = skin_base.path_join(settings.path.get_file().get_basename())
 		skins = NinjaSkins.new(skin_base)
+	if not skins.appearance.get("v06_examples",false): skins.install_v06_demo(true)
 	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI"])
 	var theme := Theme.new()
 	theme.default_font = font
@@ -102,7 +105,32 @@ func _ready() -> void:
 			start_episode(0)
 		elif capture_screen == "skins":
 			skins.install_demo()
+			skins.install_v06_demo()
 			show_skins()
+			skin_screen.slot="drone_scout"
+			skin_screen.refresh()
+			skin_screen.state_picker.select(1)
+			skin_screen.refresh_selection()
+		elif capture_screen in ["presets", "fetch"]:
+			show_skins()
+			if capture_screen == "presets":
+				skin_screen.open_presets()
+				var presets: NinjaPresetScreen=skin_screen.get_child(skin_screen.get_child_count()-1)
+				if presets.library.size()<3: get_tree().quit(1); return
+				for i in range(presets.library.size()):
+					if presets.library[i].name=="白金·临光": presets.selector.select(i)
+				presets.load_selected()
+				if skins.preset_name!="白金·临光" or not skins.clips.has("drone_scout@move"): get_tree().quit(1); return
+				capture_viewport=presets
+				print("EXPORTED_PRESETS_OK")
+			else:
+				skin_screen.open_prts()
+				var fetch: NinjaPRTSScreen=skin_screen.get_child(skin_screen.get_child_count()-1)
+				capture_ready=false; fetch.character.text="临光"
+				await fetch.start_download()
+				if not fetch.last_result.ok or fetch.last_result.downloads.size()!=9: get_tree().quit(1); return
+				capture_viewport=fetch; capture_ready=true
+				print("EXPORTED_FETCH_OK: 9 assets")
 		elif capture_screen == "rig":
 			skins.install_demo()
 			show_skins()
@@ -122,7 +150,7 @@ func _ready() -> void:
 			skins.install_demo()
 			start_episode(50)
 			sim.ninja.reset(Vector2(300, 200))
-			sim.ninja.kill("爆炸" if capture_screen == "explosive" else "无人机", capture_screen == "explosive", Vector2(298, 205), Vector2(60, -50))
+			sim.ninja.kill("爆炸" if capture_screen == "explosive" else "无人机", capture_screen == "explosive", Vector2(298, 205), Vector2(60, -50), NinjaBody.DeathKind.ELECTRIC)
 			_physics_process(NinjaSimulation.DT)
 
 func _draw() -> void:
@@ -159,6 +187,7 @@ func build_hud() -> void:
 	fps_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 
 func show_menu() -> void:
+	if is_instance_valid(skin_screen) and skin_screen.busy: return
 	state = "menu"
 	world.hide()
 	hud.hide()
@@ -168,7 +197,7 @@ func show_menu() -> void:
 	label(menu, "N", Vector2(48, 76), Vector2(260, 180), 142)
 	label(menu, "V L I N K", Vector2(60, 251), Vector2(330, 40), 31)
 	label(menu, "再一次，跃过不可能。", Vector2(61, 310), Vector2(340, 36), 21)
-	label(menu, "N 1.4 · Godot 重构原型 0.5.1", Vector2(62, 357), Vector2(335, 30), 15, MUTED)
+	label(menu, "N 1.4 · Godot 重构原型 0.5.2", Vector2(62, 357), Vector2(335, 30), 15, MUTED)
 	label(menu, "100 组关卡 / 500 张原版地图", Vector2(62, 387), Vector2(335, 30), 15, MUTED)
 	button(menu, "开始  %02d" % settings.last_episode, Rect2(62, 450, 295, 48), func(): start_episode(settings.last_episode), true)
 	button(menu, "设置", Rect2(62, 510, 141, 40), func(): show_settings("menu"))
@@ -214,6 +243,14 @@ func retry() -> void:
 	if not campaign.is_empty() and state in ["playing", "paused", "dead", "won"]:
 		load_level(sim.start_time)
 
+func suicide() -> void:
+	if state not in ["playing", "paused"] or not sim.ninja.alive: return
+	NinjaBindings.release_actions()
+	sim.suicide()
+	sound.play_event("death")
+	state = "dead"
+	show_result(false)
+
 func next_level() -> void:
 	if int(sim.level.slot) == 4:
 		settings.completed[str(sim.level.episode)] = true
@@ -246,13 +283,13 @@ func _process(_delta: float) -> void:
 	if hud.visible:
 		if not zoom_control.get_line_edit().has_focus(): zoom_control.set_value_no_signal(map_view.camera.zoom)
 		time_label.text = "%06.2f  s" % sim.time_left
-		status_label.text = "金块 %d / %d      %s 重试 · %s 暂停      加速度 %.2f×" % [sim.gold, sim.total_gold, key_hint("retry"), key_hint("pause"), settings.acceleration]
+		status_label.text = "金块 %d / %d      %s 自杀 · %s 暂停      加速度 %.2f×" % [sim.gold, sim.total_gold, key_hint("retry"), key_hint("pause"), settings.acceleration]
 		fps_label.text = "%d FPS  /  %s" % [Engine.get_frames_per_second(), "∞" if settings.max_fps == 0 else str(settings.max_fps)]
-	if not capture_path.is_empty():
+	if not capture_path.is_empty() and capture_ready:
 		capture_frames += 1
 		if capture_frames == 45:
 			await RenderingServer.frame_post_draw
-			var image := get_viewport().get_texture().get_image()
+			var image := (capture_viewport if is_instance_valid(capture_viewport) else get_viewport()).get_texture().get_image()
 			var result := image.save_png(capture_path)
 			print("CAPTURE_RESULT=", result, " PATH=", capture_path)
 			get_tree().quit(result)
@@ -282,7 +319,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		elif state == "playing": show_pause()
 		elif state in ["dead", "won"]: show_menu()
 	elif event.is_action_pressed("n_retry"):
-		retry()
+		suicide()
 	elif event.is_action_pressed("n_confirm"):
 		if state == "won": next_level()
 		elif state == "dead": retry()
@@ -309,7 +346,7 @@ func show_pause() -> void:
 	button(panel, "继续", Rect2(36, 135, 376, 43), resume, true)
 	button(panel, "设置", Rect2(36, 191, 183, 40), func(): show_settings("paused"))
 	button(panel, "关卡选择", Rect2(229, 191, 183, 40), show_menu)
-	label(panel, "%s 继续 · %s 重试" % [key_hint("pause"), key_hint("retry")], Vector2(36, 274), Vector2(376, 25), 13, MUTED)
+	label(panel, "%s 继续 · %s 自杀" % [key_hint("pause"), key_hint("retry")], Vector2(36, 274), Vector2(376, 25), 13, MUTED)
 
 func resume() -> void:
 	NinjaBindings.release_actions()
@@ -325,7 +362,7 @@ func show_result(success: bool) -> void:
 	var heading := "关卡组完成" if success and int(sim.level.slot) == 4 else ("出口已抵达" if success else "再来一次")
 	var subtitle := "剩余 %.2f 秒 · 收集 %d / %d 金块" % [sim.time_left, sim.gold, sim.total_gold] if success else sim.ninja.death_reason
 	var panel := modal(heading, subtitle, 276)
-	button(panel, "返回选择" if success and int(sim.level.slot) == 4 else ("下一关  " + key_hint("confirm") if success else "重试  " + key_hint("retry")), Rect2(36, 139, 376, 43), next_level if success else retry, true)
+	button(panel, "返回选择" if success and int(sim.level.slot) == 4 else ("下一关  " + key_hint("confirm") if success else "重试  " + key_hint("confirm")), Rect2(36, 139, 376, 43), next_level if success else retry, true)
 	button(panel, "关卡选择", Rect2(36, 197, 376, 34), show_menu)
 	if success and int(sim.level.slot) == 4:
 		settings.completed[str(sim.level.episode)] = true
@@ -342,7 +379,7 @@ func show_death_banner() -> void:
 	panel.add_theme_stylebox_override("panel", box(Color("eeeef2"), 4))
 	overlay.add_child(panel)
 	label(panel, "死亡 · " + sim.ninja.death_reason, Vector2(12, 5), Vector2(400, 30), 17, Color("b44242"))
-	button(panel, "重试  " + key_hint("retry"), Rect2(505, 4, 145, 32), retry, true)
+	button(panel, "重试  " + key_hint("confirm"), Rect2(505, 4, 145, 32), retry, true)
 	button(panel, "关卡选择", Rect2(660, 4, 120, 32), show_menu)
 
 func show_settings(return_to: String, tab: String = "general") -> void:

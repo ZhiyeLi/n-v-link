@@ -11,11 +11,14 @@ var last_revision := -1
 var last_slot := ""
 var entity_view: Node2D
 var hitbox_layer := Node2D.new()
+var anim_state := ""
+var actor := Sprite2D.new()
 const STANCES := ["run", "rise", "fall", "wall_climb", "wall_slide", "wall_jump"]
 
 func _ready() -> void:
 	rig = NinjaRig.new()
 	add_child(rig)
+	add_child(actor)
 	entity_view = Node2D.new()
 	entity_view.set_script(preload("res://view/world_view.gd"))
 	entity_view.preview_only = true
@@ -36,12 +39,21 @@ func _process(dt: float) -> void:
 	if last_revision != skins.revision:
 		skins.apply_rig(rig)
 		last_revision = skins.revision
+	entity_view.preview_state = anim_state
+	if entity_view.sim != null and not entity_view.sim.entities.is_empty(): entity_view.sim.entities[0].dir = Vector2(facing,0)
 	var vertical := -60.0 if mode in [1, 3, 5] else 70.0
 	rig.set_pose(NinjaAnimation.make_pose(STANCES[mode], age * 8, 216, vertical, 1), 1, STANCES[mode])
 	var bounds := rig.visual_bounds()
 	var factor := minf(5, minf(165 / maxf(1, bounds.size.x), 205 / maxf(1, bounds.size.y)))
 	rig.scale = Vector2(facing * factor, factor)
 	rig.position = Vector2(105 - bounds.get_center().x * facing * factor, 215 - bounds.end.y * factor)
+	actor.texture = skins.frame_at("player_actor",anim_state if slot == "player_actor" and not anim_state.is_empty() else STANCES[mode],age)
+	actor.visible = actor.texture != null
+	rig.visible = not actor.visible
+	if actor.visible:
+		var actor_factor := minf(165.0/actor.texture.get_width(),205.0/actor.texture.get_height())
+		actor.scale = Vector2(facing*actor_factor,actor_factor)
+		actor.position = Vector2(105,130)
 	queue_redraw()
 	hitbox_layer.queue_redraw()
 
@@ -53,13 +65,16 @@ func _draw() -> void:
 	draw_line(Vector2(30, 215), Vector2(180, 215), Color("9494a2"), 1)
 	if mode in [3, 4, 5]: draw_line(Vector2(155, 70), Vector2(155, 212), Color("9494a2"), 2)
 	if skins == null: return
-	var texture := skins.texture(slot)
+	var texture := skins.frame_at(slot,anim_state,age)
+	if slot == "background":
+		if texture != null: draw_texture_rect(texture,Rect2(210,30,255,193),false)
+		return
 	if texture != null and slot.begins_with("player_"):
 		var size := texture.get_size()
 		var bounds: Vector2 = NinjaSkins.ENTITY_SIZES.get(slot, Vector2(31, 31)) * 5
 		var ratio := minf(bounds.x / size.x, bounds.y / size.y)
 		draw_texture_rect(texture, Rect2(Vector2(340, 140) - size * ratio * 0.5, size * ratio), false)
-	elif slot.begins_with("player_"):
+	elif slot.begins_with("player_") and slot != "player_actor":
 		# Default player part, using the same vector renderer as gameplay.
 		var sample := rig.parts[slot.trim_prefix("player_")] as NinjaPart
 		if sample.head: draw_circle(Vector2(340, 140), 13, sample.color)

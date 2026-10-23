@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 config/name="N VLink"
-config/version="0.5.1"
+config/version="0.6.1"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/description="A modern N 1.4 reconstruction."

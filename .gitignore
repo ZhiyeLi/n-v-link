@@ -18,3 +18,5 @@ sources/prts/slug/
 sources/prts/reference/
 sources/local-checksums.json
 *.import
+sources/input pictures/
+sources/media_tools/

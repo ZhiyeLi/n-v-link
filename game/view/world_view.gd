@@ -11,11 +11,16 @@ var last_alive := true
 var paused := false
 var rig: NinjaRig
 var collisions: NinjaCollisionView
+var death_fx_view: NinjaDeathFXView
 var show_collisions := false
 var skins: NinjaSkins
 var skin_revision := -1
 var preview_only := false
 var preview_slot := ""
+var preview_state := ""
+var animation_states: Dictionary = {}
+var animation_ages: Dictionary = {}
+var actor := Sprite2D.new()
 
 func _ready() -> void:
 	terrain_view = Node2D.new()
@@ -24,13 +29,18 @@ func _ready() -> void:
 	add_child(terrain_view)
 	rig = NinjaRig.new()
 	add_child(rig)
+	add_child(actor)
 	collisions = NinjaCollisionView.new()
 	collisions.z_index = 50
 	add_child(collisions)
+	death_fx_view = NinjaDeathFXView.new()
+	death_fx_view.z_index = 30
+	add_child(death_fx_view)
 	if preview_only:
 		terrain_view.hide()
 		rig.hide()
 		collisions.hide()
+		actor.hide()
 
 func preview_entity(slot: String) -> void:
 	preview_slot = slot
@@ -56,10 +66,14 @@ func preview_entity(slot: String) -> void:
 func load_simulation(value: NinjaSimulation) -> void:
 	sim = value
 	collisions.sim = sim
+	death_fx_view.sim = sim
 	terrain_view.terrain = sim.terrain
 	terrain_view.queue_redraw()
 	last_alive = true
 	death_time = 0
+	animation_time = 0
+	animation_states.clear()
+	animation_ages.clear()
 	rig.joints.clear()
 	rig.animate(sim.ninja, 1.0)
 
@@ -74,6 +88,7 @@ func _process(delta: float) -> void:
 		skin_revision = skins.revision
 	collisions.visible = show_collisions
 	collisions.paused = paused
+	death_fx_view.paused = paused
 	var fraction := 1.0 if paused or sim.won else Engine.get_physics_interpolation_fraction()
 	rig.visible = true
 	if sim.ninja.alive:
@@ -82,18 +97,42 @@ func _process(delta: float) -> void:
 	elif sim.ragdoll.active:
 		rig.set_ragdoll(sim.ragdoll, fraction)
 	if not paused: animation_time += delta
+	for index in range(sim.entities.size()):
+		var state := NinjaSkinStates.state(sim.entities[index])
+		advance_animation(str(index),state,delta)
+	advance_animation("player",NinjaSkinStates.player(sim.ninja),delta)
+	actor.texture = skins.frame_at("player_actor",NinjaSkinStates.player(sim.ninja),animation_ages.get("player",0.0)) if skins != null else null
+	actor.visible = actor.texture != null
+	if actor.visible:
+		actor.position = sim.ninja.previous_pos.lerp(sim.ninja.pos,fraction)
+		var factor := 32.0 / maxf(actor.texture.get_width(),actor.texture.get_height()) * skins.visual_scale("player_actor")
+		actor.scale = Vector2(sim.ninja.facing*factor,factor)
+		rig.visible = false
+	var background := skins.frame_at("background","idle",animation_time) if skins != null else null
+	if terrain_view.background != background:
+		terrain_view.background = background
+		terrain_view.queue_redraw()
 	queue_redraw()
+
+func advance_animation(key: String, state: String, dt: float) -> void:
+	if animation_states.get(key,"") != state:
+		animation_states[key] = state
+		animation_ages[key] = 0.0
+	elif not paused: animation_ages[key] = float(animation_ages.get(key,0.0)) + dt
 
 func _draw() -> void:
 	if sim == null:
 		return
 	var fraction := 1.0 if paused or sim.won else Engine.get_physics_interpolation_fraction()
-	for e in sim.entities:
+	for index in range(sim.entities.size()):
+		var e: Dictionary = sim.entities[index]
 		if not e.active:
 			continue
 		var p: Vector2 = e.previous.lerp(e.pos, fraction)
 		var slot := entity_slot(e)
-		var custom := skins.texture(slot) if skins != null else null
+		var state := preview_state if preview_only and not preview_state.is_empty() else NinjaSkinStates.state(e)
+		var age: float = animation_time if preview_only else animation_ages.get(str(index),0.0)
+		var custom := skins.frame_at(slot,state,age) if skins != null else null
 		if custom != null:
 			draw_skin(custom, p, NinjaSkins.ENTITY_SIZES[slot], e)
 			# Preserve weapon telegraphs and special lethal faces over the skin.
@@ -101,8 +140,7 @@ func _draw() -> void:
 				var side := Vector2(-e.dir.y, e.dir.x) * 7
 				draw_line(p + e.dir * 8 - side, p + e.dir * 8 + side, RED, 1.5)
 			if e.type == 6 and int(e.p[4]) == 1:
-				if e.state == 2: draw_line(p, e.aim, Color(0.7, 0.2, 0.2, 0.3), 0.7)
-				if e.flash > 0: draw_line(p, p + e.shot * sim.ray_distance(p, e.shot), RED, 2, true)
+				draw_drone_laser(e)
 			if not int(e.type) in [3, 10]: continue
 		match int(e.type):
 			0:
@@ -133,10 +171,7 @@ func _draw() -> void:
 			6:
 				var weapon := int(e.p[4])
 				NinjaDroneIcon.draw_icon(self, p, int(e.p[3]) == 1 and weapon == 0, e.chasing, e.dir, animation_time, weapon)
-				if weapon == 1 and e.state == 2:
-					draw_line(p, e.aim, Color(0.7, 0.2, 0.2, 0.2), 0.7)
-				if weapon == 1 and e.flash > 0:
-					draw_line(p, p + e.shot * sim.ray_distance(p, e.shot), RED, 2, true)
+				if weapon == 1: draw_drone_laser(e)
 			7:
 				var side := Vector2(-e.dir.y, e.dir.x) * 12
 				var face: Vector2 = p + e.dir * 12
@@ -162,7 +197,7 @@ func _draw() -> void:
 					if e.open:
 						draw_circle(e.trigger, 1, INK)
 			10:
-				var base_skin := skins.texture("rocket_base") if skins != null else null
+				var base_skin := skins.frame_at("rocket_base","fire" if e.state == 1 else "idle",age) if skins != null else null
 				if base_skin != null and preview_slot != "rocket": draw_skin(base_skin, e.home, NinjaSkins.ENTITY_SIZES.rocket_base, e)
 				elif preview_slot != "rocket":
 					draw_rect(Rect2(e.home - Vector2(6, 6), Vector2(12, 12)), INK, false, 1.5)
@@ -197,6 +232,17 @@ func _draw() -> void:
 			var ray := Vector2.from_angle(i * TAU / 8)
 			draw_line(effect.pos + ray * age * 95, effect.pos + ray * (age * 95 + 4), color, 1, true)
 
+func draw_drone_laser(e: Dictionary) -> void:
+	if e.state != 2 and e.state != 3: return
+	var end := sim.laser_beam_end(e)
+	if e.state == 2:
+		draw_line(e.pos, end, Color("cb7579"), 1.2, true)
+		var charge := clampf(e.timer / NinjaSimulation.LASER_CHARGE_TIME, 0.0, 1.0)
+		draw_arc(e.pos, 3.0 + 5.0 * (1.0 - charge), 0, TAU, 24, Color("cb7579"), 0.8, true)
+	else:
+		draw_line(e.pos, end, Color("882222"), 3.0, true)
+		draw_circle(end, 2.0 + 0.6 * sin(animation_time * 40.0), Color("cb7579"), true, -1, true)
+
 static func entity_slot(e: Dictionary) -> String:
 	match int(e.type):
 		0: return "gold"
@@ -215,11 +261,14 @@ static func entity_slot(e: Dictionary) -> String:
 
 func draw_skin(texture: Texture2D, at: Vector2, maximum: Vector2, entity: Dictionary) -> void:
 	var ratio := minf(maximum.x / texture.get_width(), maximum.y / texture.get_height())
+	if skins != null: ratio *= skins.visual_scale("rocket_base" if maximum == NinjaSkins.ENTITY_SIZES.rocket_base else entity_slot(entity))
 	var dimensions := texture.get_size() * ratio
 	var rotation := 0.0
 	var mirror := Vector2.ONE
 	if entity.type == 10 and entity.state == 1 and at != entity.home: rotation = entity.dir.angle()
 	elif entity.type in [4, 6] and entity.dir.x < 0: mirror.x = -1
+	if entity.type == 6 and int(entity.p[4]) == 1 and entity.state in [2,3,4]:
+		mirror.x = -1 if entity.shot.x < 0 else 1
 	draw_set_transform(at, rotation, mirror)
 	draw_texture_rect(texture, Rect2(-dimensions * 0.5, dimensions), false)
 	draw_set_transform(Vector2.ZERO)

@@ -2,7 +2,11 @@ class_name NinjaSimulation
 extends RefCounted
 ## The simulation consumes timestamp-free input bits. Rendering never advances it.
 ## Future replay metadata must include version, rate, map hash, seed and acceleration.
-const VERSION := "n14-port-0.5.1"
+const VERSION := "n14-port-0.6.0"
+## N 1.4 DroneObject: 30 prefire / 80 firing / 40 postfire frames at 40 Hz.
+const LASER_CHARGE_TIME := 30.0 / 40.0
+const LASER_FIRE_TIME := 80.0 / 40.0
+const LASER_COOLDOWN_TIME := 40.0 / 40.0
 const FLOOR_GUARD_SPEED := 12.0 * (3.0 / 7.0) * 40.0
 const RATE := 120
 const DT := 1.0 / RATE
@@ -24,6 +28,19 @@ var won := false
 var acceleration := 1.0
 var ragdoll := NinjaRagdoll.new()
 var effects: Array[Dictionary] = []
+var death_fx := NinjaDeathFX.new()
+var suicide_rng := RandomNumberGenerator.new()
+
+func _init() -> void:
+	suicide_rng.randomize()
+
+func suicide() -> void:
+	if not ninja.alive or won: return
+	events.clear()
+	var explosive := suicide_rng.randf() < 0.5
+	ninja.kill("自杀", explosive, ninja.pos)
+	if explosive: effects.append({"pos": ninja.pos, "age": 0.0})
+	finish_death()
 
 func configuration() -> Dictionary:
 	return {"simulation_version": VERSION, "physics_rate": RATE,
@@ -37,6 +54,7 @@ func load_level(data: Dictionary, seconds: float = 90.0) -> void:
 	entities.clear()
 	bullets.clear()
 	ragdoll = NinjaRagdoll.new()
+	death_fx = NinjaDeathFX.new()
 	effects.clear()
 	events.clear()
 	tick = 0
@@ -71,6 +89,7 @@ func load_level(data: Dictionary, seconds: float = 90.0) -> void:
 				e.chasing = false
 				e.surface_grab = -1
 				e.ai_ticks = 0
+				e.beam_length = 0.0
 			7, 8: e.dir = DIRECTIONS[int(p[2]) % 4]
 			9:
 				e.trigger = pos
@@ -98,6 +117,7 @@ func step(bits: int) -> void:
 	if not ninja.alive:
 		finish_death()
 		step_after_death()
+		death_fx.step(terrain, ragdoll, DT)
 		return
 	elapsed += DT
 	time_left -= DT
@@ -141,7 +161,7 @@ func step(bits: int) -> void:
 	if ninja.just_jumped and not events.has("jump"): events.append("jump")
 	for e in entities:
 		if int(e.type) == 8 and box_contact(ninja.pos, e.pos, Vector2(8.8, 8.8)).get("depth", 0) > 1:
-			ninja.kill("挤压")
+			ninja.kill("挤压", false, e.pos, Vector2.ZERO, NinjaBody.DeathKind.ELECTRIC)
 		if int(e.type) == 11 and e.open and overlaps(e.pos, 12) and ninja.alive:
 			won = true
 			events.append("win")
@@ -151,6 +171,7 @@ func step(bits: int) -> void:
 func finish_death() -> void:
 	if ragdoll.active: return
 	ragdoll.activate(ninja, rng)
+	death_fx.start(ninja, ragdoll, int(level.get("episode", 0)) * 100003 + tick + 1)
 	for e in entities:
 		if e.type == 6:
 			e.chasing = false
@@ -177,7 +198,9 @@ func detonate_mine(e: Dictionary) -> void:
 	e.active = false
 	effects.append({"pos": e.pos, "age": 0.0})
 	if ninja.alive: ninja.kill("地雷", true, e.pos, (ninja.pos - e.pos).normalized() * 65)
-	elif ragdoll.active: ragdoll.explode(e.pos, rng)
+	elif ragdoll.active:
+		ragdoll.explode(e.pos, rng)
+		death_fx.explode(ragdoll, e.pos)
 
 func overlaps(point: Vector2, radius: float) -> bool:
 	return ninja.alive and ninja.pos.distance_squared_to(point) < pow(radius + NinjaBody.RADIUS, 2)
@@ -261,7 +284,7 @@ func update_thwump(e: Dictionary) -> void:
 	var hit := box_contact(ninja.pos, e.pos, Vector2(9, 9))
 	if not hit.is_empty():
 		if hit.normal.dot(e.dir) > 0.7:
-			ninja.kill("冲撞方块")
+			ninja.kill("冲撞方块", false, e.pos, e.dir * 60, NinjaBody.DeathKind.ELECTRIC)
 		else:
 			ninja.apply_contact(hit.normal, hit.depth, (e.pos - e.previous) / DT)
 
@@ -277,7 +300,7 @@ func update_floor_guard(e: Dictionary) -> void:
 		else:
 			e.pos = next
 	if overlaps(e.pos, 6):
-		ninja.kill("地面守卫")
+		ninja.kill("地面守卫", false, e.pos, (ninja.pos - e.pos).normalized() * 60, NinjaBody.DeathKind.ELECTRIC)
 
 func drone_edge_open(at: Vector2, direction: Vector2) -> bool:
 	var next := at + direction * 24
@@ -337,31 +360,38 @@ func update_drone(e: Dictionary) -> void:
 	var weapon := int(e.p[4])
 	var speed := [68.571429, 17.142857, 25.714286][clampi(weapon, 0, 2)] as float
 	e.ai_ticks += 1
-	if e.pos.distance_to(e.target) < 0.001:
-		e.pos = e.target
-		drone_next_goal(e)
-	e.pos = e.pos.move_toward(e.target, speed * (2 if e.chasing else 1) * DT)
+	# Original laser Update_Move is suspended through prefire, firing and postfire.
+	if weapon != 1 or e.state == 0:
+		if e.pos.distance_to(e.target) < 0.001:
+			e.pos = e.target
+			drone_next_goal(e)
+		e.pos = e.pos.move_toward(e.target, speed * (2 if e.chasing else 1) * DT)
 	if overlaps(e.pos, 9):
-		ninja.kill("无人机", false, e.pos, (ninja.pos - e.pos).normalized() * 60)
+		ninja.kill("无人机", false, e.pos, (ninja.pos - e.pos).normalized() * 60, NinjaBody.DeathKind.ELECTRIC)
 	if weapon == 0 or not ninja.alive: return
 	e.timer += DT
 	if weapon == 1:
-		if e.state == 0 and e.timer >= 2.0 and visible(e.pos, ninja.pos):
+		if e.state == 0 and visible(e.pos, ninja.pos):
 			e.state = 2
 			e.timer = 0.0
 			e.aim = ninja.pos
+			# Lock once at acquisition, not at the end of the warning period.
+			e.shot = (e.aim - e.pos).normalized()
+			e.beam_length = ray_distance(e.pos, e.shot)
 		elif e.state == 2:
-			e.aim = ninja.pos
-			if e.timer >= 0.75:
+			if e.timer + 0.000001 >= LASER_CHARGE_TIME:
 				e.state = 3
 				e.timer = 0.0
-				e.shot = (e.aim - e.pos).normalized()
+				laser_hit(e.pos, e.shot, e.beam_length)
 		elif e.state == 3:
-			e.flash = 0.05
-			laser_hit(e.pos, e.shot)
-			if e.timer >= 0.175:
-				e.state = 0
-				e.timer = -1.0
+			if e.timer + 0.000001 >= LASER_FIRE_TIME:
+				e.state = 4
+				e.timer = 0.0
+			else:
+				laser_hit(e.pos, e.shot, e.beam_length)
+		elif e.state == 4 and e.timer + 0.000001 >= LASER_COOLDOWN_TIME:
+			e.state = 0
+			e.timer = 0.0
 	elif weapon == 2:
 		if e.state == 0 and e.timer >= 1.5 and visible(e.pos, ninja.pos):
 			e.state = 2
@@ -431,16 +461,22 @@ func update_rocket(e: Dictionary) -> void:
 			if overlaps(e.pos, 3) or (ragdoll.active and ragdoll.touches(e.pos, 5)):
 				effects.append({"pos": e.pos, "age": 0.0})
 				if ninja.alive: ninja.kill("追踪导弹", true, e.pos, e.dir * 90)
-				else: ragdoll.explode(e.pos, rng)
+				else:
+					ragdoll.explode(e.pos, rng)
+					death_fx.explode(ragdoll, e.pos)
 				e.state = 0
 				e.pos = e.home
 				e.timer = -0.15
 
-func laser_hit(origin: Vector2, direction: Vector2) -> void:
+func laser_beam_end(e: Dictionary) -> Vector2:
+	# Reclip for closing doors, without extending beyond the locked endpoint.
+	return e.pos + e.shot * ray_distance(e.pos, e.shot, e.beam_length)
+
+func laser_hit(origin: Vector2, direction: Vector2, maximum: float = 1200.0) -> void:
 	if not ninja.alive: return
-	var end := origin + direction * ray_distance(origin, direction)
+	var end := origin + direction * ray_distance(origin, direction, maximum)
 	if Geometry2D.get_closest_point_to_segment(ninja.pos, origin, end).distance_to(ninja.pos) < 10:
-		ninja.kill("激光", false, origin, direction * 65)
+		ninja.kill("激光", false, origin, direction * 65, NinjaBody.DeathKind.SHOT)
 
 func update_bullets() -> void:
 	for i in range(bullets.size() - 1, -1, -1):
@@ -451,7 +487,7 @@ func update_bullets() -> void:
 		if terrain.solid(b.pos) or not visible(before, b.pos) or b.age > 5:
 			bullets.remove_at(i)
 		elif ninja.alive and Geometry2D.get_closest_point_to_segment(ninja.pos, before, b.pos).distance_to(ninja.pos) < 10:
-			ninja.kill("机枪", false, b.pos, b.velocity.normalized() * 75)
+			ninja.kill("机枪", false, b.pos, b.velocity.normalized() * 75, NinjaBody.DeathKind.SHOT)
 			bullets.remove_at(i)
 
 func visible(a: Vector2, b: Vector2) -> bool:

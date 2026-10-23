@@ -98,7 +98,7 @@ func run() -> void:
 	main.skin_screen.selected_file_slot = "player_head"
 	main.skin_screen.dialog.file_selected.emit(path)
 	check(skins.entries.player_head.title == "wide.png", "File dialog selection invokes the importer")
-	find_text(main.skin_screen, "恢复当前对象").pressed.emit()
+	find_text(main.skin_screen, "清空当前槽").pressed.emit()
 	check(skins.texture("player_head") == null and skins.texture("drone_patrol") != null, "Per-slot reset leaves other skins intact")
 	find_text(main.skin_screen, "返回首页").pressed.emit()
 	main.show_settings("menu")

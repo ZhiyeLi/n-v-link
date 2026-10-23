@@ -2,7 +2,7 @@ class_name NinjaBindings
 extends RefCounted
 
 const ACTIONS := ["left", "right", "jump", "retry", "pause", "confirm", "fullscreen"]
-const LABELS := {"left": "向左", "right": "向右", "jump": "跳跃", "retry": "重试",
+const LABELS := {"left": "向左", "right": "向右", "jump": "跳跃", "retry": "自杀",
 	"pause": "暂停 / 返回", "confirm": "下一关 / 确认", "fullscreen": "切换全屏"}
 const DEFAULTS := {"left": [KEY_LEFT, KEY_A, 0], "right": [KEY_RIGHT, KEY_D, 0],
 	"jump": [KEY_SHIFT, KEY_SPACE, KEY_Z], "retry": [KEY_R, 0, 0],
